@@ -7,6 +7,7 @@
 // @match        https://toonily.com/webtoon/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js
 // @grant        none
+// @license      MIT
 // ==/UserScript==
 
 (function() {
