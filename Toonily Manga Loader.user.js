@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Toonily Manga Loader with Lazy Load Handling and Stats
+// @name         Toonily Manga Loader
 // @namespace    github.com/longkidkoolstar
-// @version      1.0
+// @version      1.0.1
 // @description  Forces Toonily to load all manga images at once and dynamically loads them into a single page strip with a stats window.
 // @author       longkidkoolstar
 // @match        https://toonily.com/webtoon/*
@@ -250,6 +250,15 @@
     loadMangaButton.style.border = 'none';
     loadMangaButton.style.borderRadius = '5px';
     loadMangaButton.style.cursor = 'pointer';
+
+    // Add hover effect to the button
+    loadMangaButton.addEventListener('mouseover', function() {
+        loadMangaButton.style.backgroundColor = '#ff5500';
+    });
+
+    loadMangaButton.addEventListener('mouseout', function() {
+        loadMangaButton.style.backgroundColor = '#f39c12';
+    });
 
     const mangaInfo = document.querySelector("body > div.wrap > div > div > div > div.profile-manga.summary-layout-1 > div > div > div > div.tab-summary");
     if (!mangaInfo) {
