@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         Toonily Manga Loader
 // @namespace    github.com/longkidkoolstar
-// @version      1.0.1
+// @version      1.1
 // @description  Forces Toonily to load all manga images at once and dynamically loads them into a single page strip with a stats window.
 // @author       longkidkoolstar
 // @match        https://toonily.com/webtoon/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js
-// @grant        none
+// @grant        GM.setValue
+// @grant        GM.getValue
+// @grant        GM.deleteValue
 // @license      MIT
 // ==/UserScript==
 
@@ -70,7 +72,7 @@
         img.src = pageUrl;
         img.style.maxWidth = '100%';
         img.style.display = 'block';
-        img.style.margin = '10px auto';
+        img.style.margin = '0px auto';  //Note: The 0px dictates the space between images and the auto center them
 
         img.onload = function() {
             loadedImages++;
@@ -95,19 +97,53 @@
         totalImages = imageUrls.length;
     }
 
-    // Function to load all manga images into a single strip
-    function loadMangaImages() {
-        const mangaContainer = document.createElement('div');
-        mangaContainer.id = 'manga-container';
-        document.body.appendChild(mangaContainer);
+// Helper function to create an exit button
+function createExitButton() {
+    const exitButton = document.createElement('button');
+    exitButton.textContent = 'Exit';
+    exitButton.style.backgroundColor = '#e74c3c';
+    exitButton.style.color = '#fff';
+    exitButton.style.border = 'none';
+    exitButton.style.padding = '10px';
+    exitButton.style.margin = '10px auto';
+    exitButton.style.display = 'block';  // Center the button
+    exitButton.style.cursor = 'pointer';
+    exitButton.style.borderRadius = '5px';
 
-        imageUrls.forEach(url => {
-            const pageContainer = createPageContainer(url);
-            mangaContainer.appendChild(pageContainer);
-        });
+    exitButton.addEventListener('click', function() {
+        window.location.reload();  // Reload the page when clicked
+    });
 
-        removeOtherElements(); // Remove all other page elements after loading
-    }
+    return exitButton;
+}
+
+// Function to load all manga images into a single strip
+function loadMangaImages() {
+    const mangaContainer = document.createElement('div');
+    mangaContainer.id = 'manga-container';
+    document.body.appendChild(mangaContainer);
+
+    imageUrls.forEach((url, index) => {
+        const pageContainer = createPageContainer(url);
+
+        // Add exit button to the first loaded page
+        if (index === 0) {
+            const topExitButton = createExitButton();
+            mangaContainer.appendChild(topExitButton);
+        }
+
+        mangaContainer.appendChild(pageContainer);
+
+        // Add exit button to the last loaded page
+        if (index === imageUrls.length - 1) {
+            const bottomExitButton = createExitButton();
+            mangaContainer.appendChild(bottomExitButton);
+        }
+    });
+
+    removeOtherElements(); // Remove all other page elements after loading
+}
+
 
     // Function to update the stats window
     function updateStats() {
@@ -145,17 +181,22 @@
         const statsWrapper = document.createElement('div');
         statsWrapper.style.display = 'flex';
         statsWrapper.style.alignItems = 'center'; // Center vertically
-
         const collapseButton = document.createElement('span');
         collapseButton.className = 'ml-stats-collapse';
         collapseButton.title = 'Hide stats';
         collapseButton.textContent = '>>';
         collapseButton.style.cursor = 'pointer';
         collapseButton.style.marginRight = '10px'; // Space between button and content
-        collapseButton.addEventListener('click', function() {
+        collapseButton.addEventListener('click', async function() {
             contentContainer.style.display = contentContainer.style.display === 'none' ? 'block' : 'none';
             collapseButton.textContent = contentContainer.style.display === 'none' ? '<<' : '>>';
+            await GM.setValue('statsCollapsed', contentContainer.style.display === 'none');
         });
+        (async () => {
+            const isCollapsed = await GM.getValue('statsCollapsed', false);
+            contentContainer.style.display = isCollapsed ? 'none' : 'block';
+            collapseButton.textContent = isCollapsed ? '<<' : '>>';
+        })();
 
         const contentContainer = document.createElement('div');
         contentContainer.className = 'ml-stats-content';
